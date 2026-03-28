@@ -1,35 +1,12 @@
-/**
- * IAP hook using RevenueCat (react-native-purchases).
- *
- * Product IDs must be configured in App Store Connect and RevenueCat dashboard.
- * The REVENUECAT_API_KEY should be stored in a config / secrets file.
- *
- * Products:
- *   hint_single   ¥120 — 1 hint
- *   undo_3pack    ¥120 — 3 undos
- *   bundle_combo  ¥250 — 1 hint + 3 undos
- */
-
 import { useCallback, useEffect, useState } from 'react';
-import {
-  getPurchaseCount,
-  incrementPurchaseCount,
-} from '../services/storage';
-import {
-  trackFirstPurchase,
-  trackSecondPurchase,
-} from '../services/mmp';
+import Purchases, { LOG_LEVEL, PurchasesPackage } from 'react-native-purchases';
+import { REVENUECAT_API_KEY } from '../config';
+import { getPurchaseCount, incrementPurchaseCount } from '../services/storage';
+import { trackFirstPurchase, trackSecondPurchase } from '../services/mmp';
 
 // ---------------------------------------------------------------------------
-// RevenueCat types (stubbed when SDK is not available)
+// Product definitions
 // ---------------------------------------------------------------------------
-// Uncomment after installing react-native-purchases:
-//
-// import Purchases, {
-//   PurchasesPackage,
-//   CustomerInfo,
-//   LOG_LEVEL,
-// } from 'react-native-purchases';
 
 export const PRODUCT_IDS = {
   HINT: 'hint_single',
@@ -44,9 +21,7 @@ export interface PurchaseItem {
   title: string;
   description: string;
   priceLabel: string;
-  /** Hints granted */
   hints: number;
-  /** Undos granted */
   undos: number;
 }
 
@@ -88,17 +63,15 @@ export interface UsePurchasesReturn {
   restorePurchases: () => Promise<void>;
 }
 
-const REVENUECAT_API_KEY = 'YOUR_REVENUECAT_API_KEY';
-
 export function usePurchases(): UsePurchasesReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Initialize RevenueCat on mount
-    // Purchases.setLogLevel(LOG_LEVEL.DEBUG);
-    // Purchases.configure({ apiKey: REVENUECAT_API_KEY });
-    void REVENUECAT_API_KEY; // suppress unused warning until SDK integrated
+    if (__DEV__) {
+      Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+    }
+    Purchases.configure({ apiKey: REVENUECAT_API_KEY });
   }, []);
 
   const purchase = useCallback(
@@ -107,24 +80,22 @@ export function usePurchases(): UsePurchasesReturn {
       setError(null);
 
       try {
-        // --- RevenueCat purchase flow (uncomment when SDK is ready) ---
-        // const offerings = await Purchases.getOfferings();
-        // const pkg = offerings.current?.availablePackages.find(
-        //   (p: PurchasesPackage) => p.product.identifier === item.id,
-        // );
-        // if (!pkg) throw new Error('Product not found');
-        // const { customerInfo } = await Purchases.purchasePackage(pkg);
-        // void customerInfo;
+        // Fetch current offerings from RevenueCat
+        const offerings = await Purchases.getOfferings();
+        const pkg: PurchasesPackage | undefined =
+          offerings.current?.availablePackages.find(
+            (p) => p.product.identifier === item.id,
+          );
 
-        // ----- Stub: simulates successful purchase in dev -----
-        if (__DEV__) {
-          await new Promise((r) => setTimeout(r, 800)); // simulate network
+        if (!pkg) {
+          throw new Error('商品が見つかりませんでした');
         }
 
-        // Track AEO events
+        await Purchases.purchasePackage(pkg);
+
+        // AEO event tracking
         const count = await incrementPurchaseCount();
         const revenueYen = parseFloat(item.priceLabel.replace('¥', ''));
-
         if (count === 1) {
           trackFirstPurchase(revenueYen);
         } else if (count === 2) {
@@ -133,6 +104,13 @@ export function usePurchases(): UsePurchasesReturn {
 
         return { hints: item.hints, undos: item.undos };
       } catch (e: unknown) {
+        // USER_CANCELLED is not an error — just dismiss silently
+        if (
+          e instanceof Error &&
+          (e.message.includes('USER_CANCELLED') || e.message.includes('userCancelled'))
+        ) {
+          return null;
+        }
         const msg = e instanceof Error ? e.message : '購入に失敗しました';
         setError(msg);
         return null;
@@ -145,9 +123,9 @@ export function usePurchases(): UsePurchasesReturn {
 
   const restorePurchases = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
-      // const customerInfo: CustomerInfo = await Purchases.restorePurchases();
-      // void customerInfo;
+      await Purchases.restorePurchases();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '復元に失敗しました';
       setError(msg);
@@ -159,5 +137,5 @@ export function usePurchases(): UsePurchasesReturn {
   return { isLoading, error, purchase, restorePurchases };
 }
 
-// Eagerly load purchase count so it's warm when needed
+// Eagerly warm up the purchase count cache
 void getPurchaseCount();
