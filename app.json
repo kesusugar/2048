@@ -23,8 +23,6 @@
       },
       "package": "com.example.puzzle2048"
     },
-    "plugins": [
-      "react-native-purchases"
-    ]
+    "plugins": []
   }
 }
