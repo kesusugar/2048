@@ -11,4 +11,4 @@
 
 export const REVENUECAT_API_KEY = 'test_ZQFiafcyZCBSKvgmuuyLFsYakwC';
 
-export const TENJIN_API_KEY = ''; // TODO: 入力してください
+export const TENJIN_API_KEY = 'RTDGGQH4XVFTNBUQEBZWSBH35MXR6HVJ';

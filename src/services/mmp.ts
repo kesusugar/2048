@@ -1,61 +1,35 @@
 /**
- * MMP (Mobile Measurement Partner) event wrapper.
+ * MMP (Mobile Measurement Partner) — Tenjin implementation.
  *
- * Supports Tenjin and Adjust. Set PROVIDER in your environment/config.
- * Both SDKs are stubbed here — swap the import and initialise calls
- * inside initialize() once you add the native SDK to the project.
- *
- * Tenjin:  npm install react-native-tenjin
- * Adjust:  npm install react-native-adjust
+ * SDK: react-native-tenjin (1.3.2)
+ * Docs: https://github.com/tenjin/react-native-tenjin
  */
 
-export type MMPProvider = 'tenjin' | 'adjust' | 'none';
-
-// Change this to 'tenjin' or 'adjust' once the SDK is installed.
-const PROVIDER: MMPProvider = 'none';
+import Tenjin from 'react-native-tenjin';
+import { TENJIN_API_KEY } from '../config';
 
 // ---------------------------------------------------------------------------
-// Initialisation
+// Initialisation — call once on app start (App.tsx)
 // ---------------------------------------------------------------------------
 
-export function initializeMMP(apiKey: string): void {
-  if (PROVIDER === 'tenjin') {
-    // import Tenjin from 'react-native-tenjin';
-    // Tenjin.initialize(apiKey);
-    // Tenjin.connect();
-    console.log('[MMP] Tenjin initialized');
-  } else if (PROVIDER === 'adjust') {
-    // import { Adjust, AdjustConfig } from 'react-native-adjust';
-    // const config = new AdjustConfig(apiKey, AdjustConfig.EnvironmentProduction);
-    // Adjust.create(config);
-    console.log('[MMP] Adjust initialized');
-  }
+export function initializeMMP(): void {
+  Tenjin.initialize(TENJIN_API_KEY);
+  Tenjin.connect();
 }
 
 // ---------------------------------------------------------------------------
 // Internal helper
 // ---------------------------------------------------------------------------
 
-function sendEvent(eventName: string, revenue?: number, currency?: string): void {
+function sendEvent(eventName: string): void {
   if (__DEV__) {
-    console.log(`[MMP:${PROVIDER}] event=${eventName}`, revenue != null ? { revenue, currency } : '');
+    console.log(`[Tenjin] event=${eventName}`);
   }
-
-  if (PROVIDER === 'tenjin') {
-    if (revenue != null) {
-      // Tenjin.eventWithNameAndValue(eventName, String(revenue));
-    } else {
-      // Tenjin.eventWithName(eventName);
-    }
-  } else if (PROVIDER === 'adjust') {
-    // const event = new AdjustEvent('<token>');
-    // if (revenue != null) event.setRevenue(revenue, currency ?? 'JPY');
-    // Adjust.trackEvent(event);
-  }
+  Tenjin.eventWithName(eventName);
 }
 
 // ---------------------------------------------------------------------------
-// AEO Events  (see requirements §AEOイベント設計)
+// AEO Events
 // ---------------------------------------------------------------------------
 
 /** チュートリアル完了時 */
@@ -75,12 +49,18 @@ export function trackStageClear5(): void {
 
 /** 初回購入完了時 — most important AEO signal */
 export function trackFirstPurchase(revenue: number, currency = 'JPY'): void {
-  sendEvent('first_purchase', revenue, currency);
+  if (__DEV__) {
+    console.log(`[Tenjin] first_purchase revenue=${revenue} ${currency}`);
+  }
+  Tenjin.eventWithNameAndValue('first_purchase', String(Math.round(revenue)));
 }
 
 /** 2回目購入完了時 */
 export function trackSecondPurchase(revenue: number, currency = 'JPY'): void {
-  sendEvent('second_purchase', revenue, currency);
+  if (__DEV__) {
+    console.log(`[Tenjin] second_purchase revenue=${revenue} ${currency}`);
+  }
+  Tenjin.eventWithNameAndValue('second_purchase', String(Math.round(revenue)));
 }
 
 /** ヒント使用時 */
