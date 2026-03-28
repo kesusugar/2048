@@ -9,6 +9,6 @@
  *   - Fill in TENJIN_API_KEY after creating an account at tenjin.com
  */
 
-export const REVENUECAT_API_KEY = 'test_ZQFiafcyZCBSKvgmuuyLFsYakwC';
+export const REVENUECAT_API_KEY = 'appl_onNgvooRaAefkUVxSdTnlohoHUJ';
 
 export const TENJIN_API_KEY = 'RTDGGQH4XVFTNBUQEBZWSBH35MXR6HVJ';
