@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "2048 Puzzle",
+    "slug": "puzzle-2048",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FAF8EF"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.example.puzzle2048",
+      "buildNumber": "1"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FAF8EF"
+      },
+      "package": "com.example.puzzle2048"
+    },
+    "plugins": [
+      "react-native-purchases"
+    ]
+  }
+}
