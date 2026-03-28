@@ -13,7 +13,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.example.puzzle2048",
+      "bundleIdentifier": "com.kesusugar.puzzle2048",
       "buildNumber": "1"
     },
     "android": {
@@ -21,7 +21,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FAF8EF"
       },
-      "package": "com.example.puzzle2048"
+      "package": "com.kesusugar.puzzle2048"
     },
     "plugins": []
   }
